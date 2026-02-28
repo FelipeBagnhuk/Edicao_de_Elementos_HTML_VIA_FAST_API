@@ -6,10 +6,11 @@ import json
 from pathlib import Path
 from datetime import datetime
 from code_html import generate_html
+from fastapi.staticfiles import StaticFiles
 
 
 app = FastAPI(title="Title Control", description="Controls the HTML title via API")
-
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 DB_FILE = Path("title_db.json")
 

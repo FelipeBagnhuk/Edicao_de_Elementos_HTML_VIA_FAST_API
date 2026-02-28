@@ -19,7 +19,7 @@ def generate_html(current_title: str) -> str:
 </head>
 <body>
     <div class="container">
-        <img src="sua-imagem.jpg" alt="Project Image" class="imagem">
+        <img src="/static/imagens/imagem1.png" alt="Project Image" class="imagem">
         <div class="conteudo">
             <h1 class="titulo">{current_title}</h1>
             <p class="texto">
