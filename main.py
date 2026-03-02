@@ -17,7 +17,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 DB_FILE = Path("title_db.json")
-CONTENT_FILE = Path("content_db.json")  
+CONTENT_FILE = Path("content_db.json") 
 
 class TitleInput(BaseModel):
     title: str
@@ -32,7 +32,6 @@ class TitleOutput(BaseModel):
 class ContentOutput(BaseModel):  
     content: str
     timestamp: str
-
 
 def load_title() -> str:
     if DB_FILE.exists():
@@ -49,7 +48,6 @@ def save_title(title: str):
     with open(DB_FILE, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
-
 def load_content() -> str:
     if CONTENT_FILE.exists():
         with open(CONTENT_FILE, 'r', encoding='utf-8') as f:
@@ -65,7 +63,6 @@ def save_content(content: str):
     with open(CONTENT_FILE, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
-
 @app.get("/", tags=["HTML"])
 async def get_html():
     """Serves the HTML with the current title AND content from the database"""
@@ -73,7 +70,6 @@ async def get_html():
     current_content = load_content()  
     html = generate_html(current_title, current_content)   
     return HTMLResponse(content=html)
-
 
 @app.post("/title/", response_model=TitleOutput, tags=["API"])
 async def update_title(request: TitleInput):
@@ -87,7 +83,6 @@ async def update_title(request: TitleInput):
 async def get_title():
     title = load_title()
     return TitleOutput(title=title, timestamp="Current")
-
 
 @app.post("/content/", response_model=ContentOutput, tags=["API"])
 async def update_content(request: ContentInput):
@@ -104,22 +99,31 @@ async def get_content():
     content = load_content()
     return ContentOutput(content=content, timestamp="Current")
 
-# Rotas de upload existentes permanecem iguais
+# ✅ FUNÇÃO UPLOAD CORRIGIDA - SEM ERROS NO VS CODE
 @app.post("/upload-image/", tags=["Upload"])
 async def upload_image(file: UploadFile = File(..., description="Imagem em qualquer formato")):
-    if not file.content_type.startswith('image/'):
+    # Verificação segura de content_type
+    content_type: Optional[str] = getattr(file, 'content_type', None)
+    if not content_type or not content_type.startswith('image/'):
         raise HTTPException(status_code=400, detail="Arquivo deve ser uma imagem!")
+    
+    # Verificação segura de filename
+    filename: Optional[str] = getattr(file, 'filename', None)
+    if not filename:
+        raise HTTPException(status_code=400, detail="Nome do arquivo é obrigatório!")
     
     uploads_dir = Path("uploads")
     uploads_dir.mkdir(exist_ok=True)
     
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    file_extension = Path(file.filename).suffix.lower()
+    file_extension = Path(filename).suffix.lower()
     new_filename = f"imagem_{timestamp}{file_extension}"
     file_path = uploads_dir / new_filename
     
-    with file.file as buffer:
-        shutil.copyfileobj(buffer, open(file_path, 'wb'))
+    # Leitura e salvamento corretos
+    content = await file.read()
+    with open(file_path, 'wb') as buffer:
+        buffer.write(content)
     
     return {
         "message": "Imagem carregada com sucesso!",
