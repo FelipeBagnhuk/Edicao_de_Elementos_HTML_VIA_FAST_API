@@ -99,7 +99,7 @@ async def get_content():
     content = load_content()
     return ContentOutput(content=content, timestamp="Current")
 
-# ✅ FUNÇÃO UPLOAD CORRIGIDA - SEM ERROS NO VS CODE
+# FUNÇÃO UPLOAD CORRIGIDA - SEM ERROS NO VS CODE
 @app.post("/upload-image/", tags=["Upload"])
 async def upload_image(file: UploadFile = File(..., description="Imagem em qualquer formato")):
     # Verificação segura de content_type
